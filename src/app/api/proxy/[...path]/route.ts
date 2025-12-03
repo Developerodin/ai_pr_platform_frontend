@@ -96,7 +96,26 @@ async function handleRequest(
       body: body || undefined,
     });
 
-    // Get response data
+    // Check if this is a streaming response (chatbot endpoint)
+    const isStreaming = path.includes('chatbot/message') || 
+                       response.headers.get('content-type')?.includes('text/event-stream');
+
+    if (isStreaming && response.body) {
+      // Pass through streaming response
+      return new NextResponse(response.body, {
+        status: response.status,
+        headers: {
+          'Content-Type': response.headers.get('content-type') || 'text/event-stream',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+        },
+      });
+    }
+
+    // Handle non-streaming responses
     const data = await response.text();
     let jsonData;
     try {

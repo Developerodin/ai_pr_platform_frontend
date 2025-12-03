@@ -1,4 +1,16 @@
 import axios from 'axios';
+import type {
+  JournalistListParams,
+  JournalistCreateData,
+  JournalistUpdateData,
+  PitchListParams,
+  PitchCreateData,
+  PitchUpdateData,
+  EmailSendData,
+  EmailInteractionsParams,
+  NewsroomUpdateData,
+  ChatbotCompleteEvent,
+} from './types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://apis.scraponwheels.com/ecom/';
 
@@ -66,7 +78,7 @@ export const authApi = {
 export const profileApi = {
   updateProfile: (data: { first_name: string; last_name: string; company_name: string }) =>
     api.put('/api/v1/profile/update', data),
-  updatePreferences: (data: { default_tone: string; email_signature: string }) =>
+  updatePreferences: (data: { default_tone: string; email_signature?: string }) =>
     api.put('/api/v1/profile/preferences', data),
   sendVerification: (data: { email: string }) =>
     api.post('/api/v1/profile/send-verification', data),
@@ -81,19 +93,19 @@ export const profileApi = {
 };
 
 export const journalistApi = {
-  list: (params?: any) => api.get('/api/v1/journalists', { params }),
-  create: (data: any) => api.post('/api/v1/journalists', data),
+  list: (params?: JournalistListParams) => api.get('/api/v1/journalists', { params }),
+  create: (data: JournalistCreateData) => api.post('/api/v1/journalists', data),
   get: (id: string) => api.get(`/api/v1/journalists/${id}`),
-  update: (id: string, data: any) => api.put(`/api/v1/journalists/${id}`, data),
+  update: (id: string, data: JournalistUpdateData) => api.put(`/api/v1/journalists/${id}`, data),
   delete: (id: string) => api.delete(`/api/v1/journalists/${id}`),
   stats: () => api.get('/api/v1/journalists/stats/overview'),
 };
 
 export const pitchApi = {
-  list: (params?: any) => api.get('/api/v1/pitches', { params }),
-  create: (data: any) => api.post('/api/v1/pitches', data),
+  list: (params?: PitchListParams) => api.get('/api/v1/pitches', { params }),
+  create: (data: PitchCreateData) => api.post('/api/v1/pitches', data),
   get: (id: string) => api.get(`/api/v1/pitches/${id}`),
-  update: (id: string, data: any) => api.put(`/api/v1/pitches/${id}`, data),
+  update: (id: string, data: PitchUpdateData) => api.put(`/api/v1/pitches/${id}`, data),
   delete: (id: string) => api.delete(`/api/v1/pitches/${id}`),
   regenerate: (id: string) => api.post(`/api/v1/pitches/${id}/regenerate`),
   stats: () => api.get('/api/v1/pitches/stats/overview'),
@@ -108,8 +120,8 @@ export const pitchApi = {
 };
 
 export const emailApi = {
-  send: (data: any) => api.post('/api/v1/emails/send-pitch', data),
-  interactions: (params?: any) => api.get('/api/v1/emails/interactions', { params }),
+  send: (data: EmailSendData) => api.post('/api/v1/emails/send-pitch', data),
+  interactions: (params?: EmailInteractionsParams) => api.get('/api/v1/emails/interactions', { params }),
   stats: () => api.get('/api/v1/emails/stats'),
 };
 
@@ -165,7 +177,7 @@ export const newsroomApi = {
   getMy: () => api.get('/api/v1/newsroom/my'),
 
   // Update newsroom
-  update: (data: any) => api.put('/api/v1/newsroom/', data),
+  update: (data: NewsroomUpdateData) => api.put('/api/v1/newsroom/', data),
 
   // Get newsroom stats
   getStats: () => api.get('/api/v1/newsroom/stats'),
@@ -212,7 +224,7 @@ export const chatbotApi = {
       content: string;
       timestamp: string;
     }>;
-  }): Promise<{ data: any }> => {
+  }): Promise<{ data: ChatbotCompleteEvent }> => {
     // Use fetch because axios doesn't handle SSE streaming well
     const url = `${API_BASE_URL}/api/v1/chatbot/message`;
 
@@ -234,7 +246,7 @@ export const chatbotApi = {
     });
 
     if (!res.ok) {
-      let errBody: any = null;
+      let errBody: { detail?: string } | null = null;
       try {
         errBody = await res.json();
       } catch {
@@ -250,7 +262,7 @@ export const chatbotApi = {
 
     const decoder = new TextDecoder('utf-8');
     let buffer = '';
-    let completeEvent: any = null;
+    let completeEvent: ChatbotCompleteEvent | null = null;
     let sessionIdFromStream: string | null = null;
 
     while (true) {
@@ -268,20 +280,20 @@ export const chatbotApi = {
         const jsonStr = line.slice(5).trim();
         if (!jsonStr) continue;
 
-        let eventObj: any;
+        let eventObj: { type?: string; session_id?: string; [key: string]: unknown };
         try {
-          eventObj = JSON.parse(jsonStr);
+          eventObj = JSON.parse(jsonStr) as { type?: string; session_id?: string; [key: string]: unknown };
         } catch {
           continue;
         }
 
         if (eventObj.type === 'session_id') {
-          sessionIdFromStream = eventObj.session_id;
+          sessionIdFromStream = eventObj.session_id || null;
         } else if (eventObj.type === 'complete') {
           completeEvent = {
             ...eventObj,
-            session_id: eventObj.session_id || sessionIdFromStream,
-          };
+            session_id: eventObj.session_id || sessionIdFromStream || undefined,
+          } as ChatbotCompleteEvent;
         }
       }
     }

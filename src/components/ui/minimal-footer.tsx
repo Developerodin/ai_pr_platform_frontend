@@ -7,6 +7,7 @@ import {
     TwitterIcon,
     YoutubeIcon,
 } from 'lucide-react';
+import Link from 'next/link';
 
 export function MinimalFooter() {
     const year = new Date().getFullYear();
@@ -90,9 +91,9 @@ export function MinimalFooter() {
                 <div className="bg-border absolute inset-x-0 h-px w-full" />
                 <div className="grid max-w-6xl grid-cols-6 gap-8 md:gap-12 p-8 md:p-12">
                     <div className="col-span-6 flex flex-col gap-8 md:col-span-4">
-                        <a href="/" className="w-max opacity-25">
+                        <Link href="/" className="w-max opacity-25">
                             <Sparkles className="size-12" />
-                        </a>
+                        </Link>
                         <p className="text-muted-foreground max-w-lg font-mono text-base md:text-lg text-balance leading-relaxed">
                             AI-powered PR platform transforming media outreach for modern teams. 
                             Generate compelling pitches, target the right journalists, and track your coverage in real-time.

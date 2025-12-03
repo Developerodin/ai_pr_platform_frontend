@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Mail, Shield, CheckCircle } from "lucide-react";
 import { profileApi } from "@/lib/api";
 import { toast } from "sonner";
+import type { ApiError } from "@/lib/types";
 
 const otpSchema = z.object({
   otp: z.string().min(6, "OTP must be 6 digits").max(6, "OTP must be 6 digits"),
@@ -51,8 +52,8 @@ export function EmailVerification({ email, onVerified }: EmailVerificationProps)
       if (response.data.debug_otp) {
         toast.info(`Debug: OTP is ${response.data.debug_otp}`, { duration: 10000 });
       }
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || "Failed to send verification code";
+    } catch (error: unknown) {
+      const errorMessage = (error as ApiError)?.response?.data?.detail || "Failed to send verification code";
       toast.error(errorMessage);
     } finally {
       setSending(false);
@@ -66,8 +67,8 @@ export function EmailVerification({ email, onVerified }: EmailVerificationProps)
       setVerified(true);
       toast.success("Email verified successfully!");
       onVerified?.();
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || "Invalid verification code";
+    } catch (error: unknown) {
+      const errorMessage = (error as ApiError)?.response?.data?.detail || "Invalid verification code";
       toast.error(errorMessage);
     } finally {
       setLoading(false);

@@ -52,8 +52,9 @@ export function ContentRewriter({
       onRewriteComplete(response.data.rewritten_content);
       toast.success(`${contentType === 'email' ? 'Email' : 'Press release'} rewritten successfully!`);
       
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || "Failed to rewrite content";
+    } catch (error: unknown) {
+      const apiError = error as { response?: { data?: { detail?: string } } };
+      const errorMessage = apiError.response?.data?.detail || "Failed to rewrite content";
       toast.error(errorMessage);
     } finally {
       setRewriting(false);
@@ -80,7 +81,7 @@ export function ContentRewriter({
             <Label className="text-xs font-medium">Mood</Label>
             <Select
               value={settings.mood}
-              onValueChange={(value: any) => setSettings({ ...settings, mood: value })}
+              onValueChange={(value) => setSettings({ ...settings, mood: value as RewriteSettings['mood'] })}
             >
               <SelectTrigger className="h-8 text-xs">
                 <SelectValue />
@@ -103,7 +104,7 @@ export function ContentRewriter({
             <Label className="text-xs font-medium">Length</Label>
             <Select
               value={settings.length}
-              onValueChange={(value: any) => setSettings({ ...settings, length: value })}
+              onValueChange={(value) => setSettings({ ...settings, length: value as RewriteSettings['length'] })}
             >
               <SelectTrigger className="h-8 text-xs">
                 <SelectValue />
@@ -126,7 +127,7 @@ export function ContentRewriter({
             <Label className="text-xs font-medium">Style</Label>
             <Select
               value={settings.style}
-              onValueChange={(value: any) => setSettings({ ...settings, style: value })}
+              onValueChange={(value) => setSettings({ ...settings, style: value as RewriteSettings['style'] })}
             >
               <SelectTrigger className="h-8 text-xs">
                 <SelectValue />

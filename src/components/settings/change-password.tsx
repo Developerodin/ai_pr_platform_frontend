@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Lock, CheckCircle } from "lucide-react";
 import { profileApi } from "@/lib/api";
 import { toast } from "sonner";
+import type { ApiError } from "@/lib/types";
 
 const passwordSchema = z.object({
   current_password: z.string().min(1, "Current password is required"),
@@ -50,8 +51,8 @@ export function ChangePassword() {
       setSuccess(true);
       form.reset();
       toast.success("Password changed successfully!");
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || "Failed to change password";
+    } catch (error: unknown) {
+      const errorMessage = (error as ApiError)?.response?.data?.detail || "Failed to change password";
       toast.error(errorMessage);
     } finally {
       setLoading(false);

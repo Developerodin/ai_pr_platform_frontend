@@ -10,12 +10,13 @@ import {
 } from "lucide-react";
 import { profileApi } from "@/lib/api";
 import { toast } from "sonner";
+import type { ApiError } from "@/lib/types";
 
 interface EmailVerificationBannerProps {
   user: {
     id: string;
     email: string;
-    email_verified: boolean;
+    email_verified?: boolean;
     first_name: string;
   };
   onVerified?: () => void;
@@ -25,7 +26,7 @@ export function EmailVerificationBanner({ user, onVerified }: EmailVerificationB
   const [sending, setSending] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
-  if (user.email_verified || dismissed) return null;
+  if (user.email_verified === true || dismissed) return null;
 
   const sendVerificationEmail = async () => {
     setSending(true);
@@ -36,8 +37,9 @@ export function EmailVerificationBanner({ user, onVerified }: EmailVerificationB
       if (response.data.debug_otp) {
         toast.info(`Debug: OTP is ${response.data.debug_otp}`, { duration: 8000 });
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.detail || "Failed to send email");
+    } catch (error: unknown) {
+      const errorMessage = (error as ApiError)?.response?.data?.detail || "Failed to send email";
+      toast.error(errorMessage);
     } finally {
       setSending(false);
     }

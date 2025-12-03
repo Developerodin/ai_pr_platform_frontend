@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { importApi } from "@/lib/api";
 import { toast } from "sonner";
+import type { ApiError, Journalist } from "@/lib/types";
 
 interface ImportPreview {
   total_rows: number;
@@ -42,7 +43,7 @@ interface ImportPreview {
   invalid_rows: number;
   duplicate_rows: number;
   field_mapping: Record<string, string>;
-  sample_data: any[];
+  sample_data: Record<string, unknown>[];
   detected_columns: string[];
   suggested_mapping: Record<string, string>;
 }
@@ -55,7 +56,7 @@ interface ImportResult {
   errors: Array<{
     row: number;
     error: string;
-    data: any;
+    data: Record<string, unknown>;
   }>;
   imported_journalist_ids: string[];
 }
@@ -121,8 +122,8 @@ export function ImportJournalistsDialog({ onImportComplete }: ImportJournalistsD
       setPreview(response.data);
       setStep('preview');
       toast.success("File analyzed successfully!");
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || "Failed to analyze file";
+    } catch (error: unknown) {
+      const errorMessage = (error as ApiError)?.response?.data?.detail || "Failed to analyze file";
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -149,8 +150,8 @@ export function ImportJournalistsDialog({ onImportComplete }: ImportJournalistsD
       );
       
       onImportComplete?.();
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || "Import failed";
+    } catch (error: unknown) {
+      const errorMessage = (error as ApiError)?.response?.data?.detail || "Import failed";
       toast.error(errorMessage);
       setStep('preview'); // Go back to preview on error
     } finally {
@@ -341,13 +342,13 @@ export function ImportJournalistsDialog({ onImportComplete }: ImportJournalistsD
                     <TableBody>
                       {preview.sample_data.slice(0, 3).map((row, index) => (
                         <TableRow key={index}>
-                          <TableCell>{row.name || '-'}</TableCell>
-                          <TableCell>{row.email || '-'}</TableCell>
-                          <TableCell>{row.publication || '-'}</TableCell>
-                          <TableCell>{row.category || '-'}</TableCell>
+                          <TableCell>{String(row.name || '-')}</TableCell>
+                          <TableCell>{String(row.email || '-')}</TableCell>
+                          <TableCell>{String(row.publication || '-')}</TableCell>
+                          <TableCell>{String(row.category || '-')}</TableCell>
                           <TableCell>
-                            <Badge variant={row.import_status === 'valid' ? 'default' : 'destructive'}>
-                              {row.import_status}
+                            <Badge variant={String(row.import_status) === 'valid' ? 'default' : 'destructive'}>
+                              {String(row.import_status || '-')}
                             </Badge>
                           </TableCell>
                         </TableRow>

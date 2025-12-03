@@ -258,7 +258,7 @@ export function NewsroomOverview({ newsroom }: NewsroomOverviewProps) {
         <CardHeader>
           <CardTitle>Brand Colors</CardTitle>
           <CardDescription>
-            Your newsroom's color scheme
+            Your newsroom&apos;s color scheme
           </CardDescription>
         </CardHeader>
         <CardContent>

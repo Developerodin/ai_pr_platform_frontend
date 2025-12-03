@@ -21,7 +21,7 @@ import {
   Loader2,
   AlertTriangle
 } from "lucide-react";
-import { Newsroom } from "@/lib/types";
+import { Newsroom, ApiError } from "@/lib/types";
 import { newsroomApi } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -99,8 +99,8 @@ export function NewsroomSettings({ newsroom, onUpdate }: NewsroomSettingsProps) 
       toast.success("Newsroom settings updated successfully!");
       onUpdate();
 
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || "Failed to update settings";
+    } catch (error: unknown) {
+      const errorMessage = (error as ApiError)?.response?.data?.detail || "Failed to update settings";
       toast.error(errorMessage);
     } finally {
       setSaving(false);
@@ -116,8 +116,8 @@ export function NewsroomSettings({ newsroom, onUpdate }: NewsroomSettingsProps) 
       form.setValue("is_public", response.data.is_public);
       onUpdate();
 
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || "Failed to toggle public status";
+    } catch (error: unknown) {
+      const errorMessage = (error as ApiError)?.response?.data?.detail || "Failed to toggle public status";
       toast.error(errorMessage);
     } finally {
       setTogglingPublic(false);
@@ -273,7 +273,7 @@ const publicUrl = `${typeof window !== 'undefined' ? window.location.origin : ''
               Brand Colors
             </CardTitle>
             <CardDescription>
-              Customize your newsroom's color scheme
+              Customize your newsroom&apos;s color scheme
             </CardDescription>
           </CardHeader>
           <CardContent>

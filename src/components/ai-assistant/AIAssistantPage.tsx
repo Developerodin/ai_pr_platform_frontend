@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { chatbotApi } from "@/lib/api";
-import { ChatMessage, ChatbotResponse } from "@/lib/types";
+import { ChatMessage, ChatbotCompleteEvent, ApiError, NextStep } from "@/lib/types";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -103,7 +103,7 @@ export default function AIAssistantPage() {
         conversation_history: conversationContext,
       });
 
-      const data: ChatbotResponse = response.data;
+      const data: ChatbotCompleteEvent = response.data;
 
       if (data.session_id && !sessionId) {
         setSessionId(data.session_id);
@@ -115,10 +115,21 @@ export default function AIAssistantPage() {
         role: "assistant",
         content: data.message.content,
         timestamp: data.message.timestamp || new Date().toISOString(),
-        actions: data.actions_executed ?? [],
+        actions: data.actions_executed?.map(toolCall => ({
+          type: toolCall.tool,
+          status: 'completed',
+          result: toolCall.args,
+        })) ?? [],
         metadata: {
-          suggestions: data.suggestions ?? [],
-          next_steps: data.next_steps ?? [],
+          suggestions: data.suggestions?.map(s => ({
+            title: s.title,
+            description: s.description,
+            action: s.action,
+            priority: (s.priority === 'high' || s.priority === 'medium' || s.priority === 'low') 
+              ? s.priority 
+              : 'medium' as 'high' | 'medium' | 'low',
+          })) ?? [],
+          next_steps: data.next_steps?.map(step => step.title) ?? [],
           tips: [],
           credits_used: undefined,
           quality_scores: undefined,
@@ -137,12 +148,12 @@ export default function AIAssistantPage() {
           `✅ Ran ${toolCount} tool action${toolCount > 1 ? "s" : ""}`
         );
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error sending message:", error);
-
+      const apiError = error as ApiError;
       const errorDetail =
-        error.response?.data?.detail ||
-        error.message ||
+        apiError.response?.data?.detail ||
+        (error instanceof Error ? error.message : undefined) ||
         "Sorry, I encountered an error processing your request. Please try again.";
 
       const errorText =
@@ -229,7 +240,7 @@ export default function AIAssistantPage() {
                       PR Agent is here to help you
                     </h2>
                     <p className="text-muted-foreground text-lg mb-8 max-w-2xl">
-                      I'm here to help you create compelling PR content,
+                      I&apos;m here to help you create compelling PR content,
                       analyze campaigns, and streamline your media outreach
                       workflow.
                     </p>
@@ -459,7 +470,7 @@ export default function AIAssistantPage() {
                                 </div>
                                 <div className="space-y-2">
                                   {message.actions.map(
-                                    (action: any, actionIndex: number) => (
+                                    (action, actionIndex: number) => (
                                       <div
                                         key={actionIndex}
                                         className="flex items-center gap-3"
@@ -469,7 +480,7 @@ export default function AIAssistantPage() {
                                           className="text-xs"
                                         >
                                           {(
-                                            action.tool || "tool"
+                                            action.type || "tool"
                                           ).replace(/_/g, " ")}
                                         </Badge>
                                         <span className="text-sm text-muted-foreground">
@@ -563,7 +574,7 @@ export default function AIAssistantPage() {
                                       .slice(0, 3)
                                       .map(
                                         (
-                                          step: any,
+                                          step: string,
                                           stepIndex: number
                                         ) => (
                                           <li
@@ -571,15 +582,7 @@ export default function AIAssistantPage() {
                                             className="flex items-start gap-2 text-sm"
                                           >
                                             <ArrowRight className="h-4 w-4 mt-0.5 flex-shrink-0 text-primary" />
-                                            <span>
-                                              {step.icon
-                                                ? `${step.icon} `
-                                                : ""}
-                                              {step.title}
-                                              {step.description
-                                                ? ` – ${step.description}`
-                                                : ""}
-                                            </span>
+                                            <span>{step}</span>
                                           </li>
                                         )
                                       )}

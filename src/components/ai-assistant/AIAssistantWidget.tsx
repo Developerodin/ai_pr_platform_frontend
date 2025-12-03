@@ -22,7 +22,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { chatbotApi } from '@/lib/api';
-import { ChatMessage, ChatbotResponse } from '@/lib/types';
+import { ChatMessage, ChatbotCompleteEvent, ApiError } from '@/lib/types';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -175,7 +175,7 @@ const AIAssistantWidget = forwardRef<AIAssistantWidgetRef, AIAssistantWidgetProp
           conversation_history: conversationContext,
         });
 
-        const data: ChatbotResponse = response.data;
+        const data: ChatbotCompleteEvent = response.data;
         
         // Update session ID if new
         if (data.session_id && !sessionId) {
@@ -187,10 +187,21 @@ const assistantMessage: ChatMessage = {
   role: 'assistant',
   content: data.message.content,
   timestamp: data.message.timestamp || new Date().toISOString(),
-  actions: data.actions_executed ?? [],
+  actions: data.actions_executed?.map(toolCall => ({
+    type: toolCall.tool,
+    status: 'completed',
+    result: toolCall.args,
+  })) ?? [],
   metadata: {
-    suggestions: data.suggestions ?? [],
-    next_steps: data.next_steps ?? [],
+    suggestions: data.suggestions?.map(s => ({
+      title: s.title,
+      description: s.description,
+      action: s.action,
+      priority: (s.priority === 'high' || s.priority === 'medium' || s.priority === 'low') 
+        ? s.priority 
+        : 'medium' as 'high' | 'medium' | 'low',
+    })) ?? [],
+    next_steps: data.next_steps?.map(step => step.title) ?? [],
     // backend currently does not send tips/performance_info; keep optional
     tips: data.tips ?? [],
     credits_used: data.performance_info?.credits_used,
@@ -216,10 +227,10 @@ if (toolCount > 0) {
 }
 
 
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Error sending message:', error);
-        
-        const errorMessage = error.response?.data?.detail || 'Sorry, I encountered an error processing your request. Please try again.';
+        const apiError = error as ApiError;
+        const errorMessage = apiError.response?.data?.detail || 'Sorry, I encountered an error processing your request. Please try again.';
         
         const errorResponse: ChatMessage = {
           id: Date.now().toString(),
@@ -430,13 +441,13 @@ if (toolCount > 0) {
                         {/* Action Results */}
 {message.actions && message.actions.length > 0 && (
   <div className="mt-4 space-y-2">
-    {message.actions.map((action: any, index: number) => (
+    {message.actions.map((action, index: number) => (
       <div key={index} className="flex items-center gap-2 text-xs">
         <Badge
           variant="default"
           className="text-xs flex-shrink-0"
         >
-          {(action.tool || 'tool').replace(/_/g, ' ')}
+          {(action.type || 'tool').replace(/_/g, ' ')}
         </Badge>
         <span className="truncate">
           ✅ executed
@@ -495,14 +506,10 @@ if (toolCount > 0) {
   <div className="mt-4">
     <p className="text-xs font-semibold mb-2">Next Steps:</p>
     <ul className="text-xs space-y-1">
-      {message.metadata.next_steps.slice(0, 2).map((step: any, index: number) => (
+      {message.metadata.next_steps.slice(0, 2).map((step: string, index: number) => (
         <li key={index} className="flex items-start gap-2">
           <ArrowRight className="h-3 w-3 mt-0.5 flex-shrink-0 text-primary" />
-          <span>
-            {step.icon ? `${step.icon} ` : ''}
-            {step.title}
-            {step.description ? ` – ${step.description}` : ''}
-          </span>
+          <span>{step}</span>
         </li>
       ))}
     </ul>

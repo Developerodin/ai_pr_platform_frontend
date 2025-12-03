@@ -15,6 +15,7 @@ export interface User {
   created_at: string;
   last_login?: string;
   status: string;
+  email_verified?: boolean;
 }
 
 // Auth types
@@ -290,6 +291,94 @@ export interface Newsroom {
   last_updated: string;
 }
 
+// API Request/Response types
+export interface JournalistListParams {
+  limit?: number;
+  offset?: number;
+  category?: string;
+  search?: string;
+  status?: string;
+}
+
+export interface JournalistCreateData {
+  name: string;
+  email: string;
+  publication: string;
+  category: Journalist['category'];
+  topics: string[];
+  country: string;
+  timezone: string;
+  contact_info?: Partial<Journalist['contact_info']>;
+  notes?: string;
+}
+
+export interface JournalistUpdateData extends Partial<JournalistCreateData> {
+  status?: Journalist['status'];
+}
+
+export interface PitchListParams {
+  limit?: number;
+  offset?: number;
+  status?: Pitch['status'];
+  industry?: string;
+  search?: string;
+}
+
+export interface PitchCreateData {
+  headline: string;
+  company_name: string;
+  key_points: string[];
+  industry: string;
+  announcement_type: Pitch['announcement_type'];
+}
+
+export interface PitchUpdateData extends Partial<PitchCreateData> {
+  status?: Pitch['status'];
+  content?: Partial<Pitch['content']>;
+}
+
+export type EmailSendData = SendPitchRequest;
+
+export interface EmailInteractionsParams {
+  limit?: number;
+  offset?: number;
+  pitch_id?: string;
+  journalist_id?: string;
+}
+
+export interface NewsroomUpdateData {
+  company_info?: Partial<CompanyInfo>;
+  brand_colors?: Partial<Newsroom['brand_colors']>;
+  is_public?: boolean;
+}
+
+export interface ChatbotCompleteEvent {
+  type: 'complete';
+  session_id?: string;
+  message: ChatMessage;
+  actions_executed?: ChatbotToolCall[];
+  suggestions?: ChatbotSuggestion[];
+  next_steps?: NextStep[];
+  tips?: string[];
+  performance_info?: {
+    credits_used: number;
+    quality_scores: number[];
+    response_time?: number;
+  };
+}
+
+// API Error type helper
+export interface ApiError {
+  response?: {
+    data?: {
+      detail?: string;
+      message?: string;
+    };
+    status?: number;
+  };
+  message?: string;
+}
+
 export interface NewsroomStats {
   exists: boolean;
   stats: {
@@ -312,7 +401,7 @@ export interface ChatMessage {
   actions?: Array<{
     type: string;
     status: string;
-    result?: any;
+    result?: unknown;
     error?: string;
   }>;
   metadata?: {
@@ -353,7 +442,7 @@ export interface ChatbotRequest {
 
 export interface ChatbotToolCall {
   tool: string;
-  args: Record<string, any>;
+  args: Record<string, unknown>;
 }
 
 export interface ChatbotSuggestion {
@@ -363,12 +452,18 @@ export interface ChatbotSuggestion {
   priority: string;
 }
 
+export interface NextStep {
+  title: string;
+  description: string;
+  icon?: string;
+}
+
 export interface ChatbotResponse {
   session_id: string;
   message: ChatMessage; // same type you already use in the UI
   actions_executed: ChatbotToolCall[]; // no type/status, just tool+args
   suggestions: ChatbotSuggestion[];
-  next_steps: any[];   // backend sends array of objects: { title, description, icon }
+  next_steps: NextStep[];
   // optional, in case you add later
   tips?: string[];
   performance_info?: {

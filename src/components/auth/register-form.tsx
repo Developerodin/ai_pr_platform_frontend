@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 import { authApi } from "@/lib/api";
 import { toast } from "sonner";
+import type { ApiError } from "@/lib/types";
 
 const registerSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -72,13 +73,14 @@ const onSubmit = async (data: RegisterFormData) => {
     router.push('/dashboard');
     console.log("Router.push called");
     
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("=== REGISTRATION ERROR ===");
-    console.error("Full error:", err);
-    console.error("Error response:", err.response);
-    console.error("Error data:", err.response?.data);
+    const apiErr = err as ApiError;
+    console.error("Full error:", apiErr);
+    console.error("Error response:", apiErr.response);
+    console.error("Error data:", apiErr.response?.data);
     
-    const errorMessage = err.response?.data?.detail || "Registration failed. Please try again.";
+    const errorMessage = apiErr.response?.data?.detail || "Registration failed. Please try again.";
     setError(errorMessage);
     toast.error(errorMessage);
   } finally {

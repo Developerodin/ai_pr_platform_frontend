@@ -30,6 +30,7 @@ import {
 import { Newsroom, MediaAsset } from "@/lib/types";
 import { newsroomApi } from "@/lib/api";
 import { toast } from "sonner";
+import type { ApiError } from "@/lib/types";
 
 interface MediaAssetManagerProps {
   newsroom: Newsroom;
@@ -100,8 +101,8 @@ export function MediaAssetManager({ newsroom, onUpdate }: MediaAssetManagerProps
       loadMediaAssets();
       onUpdate();
       
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || "Failed to upload media asset";
+    } catch (error: unknown) {
+      const errorMessage = (error as ApiError)?.response?.data?.detail || "Failed to upload media asset";
       toast.error(errorMessage);
     } finally {
       setUploading(false);
@@ -116,8 +117,8 @@ export function MediaAssetManager({ newsroom, onUpdate }: MediaAssetManagerProps
       toast.success("Media asset deleted successfully!");
       loadMediaAssets();
       onUpdate();
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || "Failed to delete media asset";
+    } catch (error: unknown) {
+      const errorMessage = (error as ApiError)?.response?.data?.detail || "Failed to delete media asset";
       toast.error(errorMessage);
     }
   };

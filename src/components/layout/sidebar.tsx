@@ -18,7 +18,7 @@ import {
 import { useRouter, usePathname } from "next/navigation";
 import { toast } from "sonner";
 
-interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
+type SidebarProps = React.HTMLAttributes<HTMLDivElement>;
 
 const sidebarItems = [
   {

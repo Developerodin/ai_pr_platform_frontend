@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import { DashboardOverview } from "@/components/dashboard/dashboard-overview";
 import { EmailVerificationBanner } from "@/components/dashboard/email-verification-banner";
 import { authApi } from "@/lib/api";
+import { User } from "@/lib/types";
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,7 +40,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Email Verification Banner - Now appears below navbar */}
-      {user && !user.email_verified && (
+      {user && user.email_verified !== true && (
         <EmailVerificationBanner 
           user={user}
           onVerified={loadUser}
@@ -49,7 +50,7 @@ export default function DashboardPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">
-          Welcome back! Here's an overview of your PR activities.
+          Welcome back! Here&apos;s an overview of your PR activities.
         </p>
       </div>
 

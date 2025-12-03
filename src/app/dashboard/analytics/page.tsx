@@ -105,7 +105,7 @@ export default function AnalyticsPage() {
 
       // Process category stats
       const categories = journalistResponse.data.top_categories || [];
-      const categoryData = categories.map((cat: any) => ({
+      const categoryData = categories.map((cat: { category?: string; _id?: string; count: number }) => ({
         category: cat.category || cat._id,
         journalists: cat.count,
         emails_sent: Math.floor(Math.random() * 50), // Mock data
@@ -393,7 +393,7 @@ export default function AnalyticsPage() {
               <div className="p-4 border rounded-lg">
                 <h4 className="font-medium mb-2">Low Credits Warning</h4>
                 <p className="text-sm text-muted-foreground mb-3">
-                  You're running low on AI generation credits. Consider upgrading your plan.
+                  You&apos;re running low on AI generation credits. Consider upgrading your plan.
                 </p>
                 <Button size="sm" variant="outline">
                   Upgrade Plan

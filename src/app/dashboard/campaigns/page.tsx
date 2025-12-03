@@ -48,10 +48,11 @@ const loadPitches = async () => {
       console.log("No pitches found");
     }
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error loading pitches:", error);
-    console.error("Error response:", error.response?.data); // Debug
-    setError(error.response?.data?.detail || "Failed to load pitches");
+    const apiError = error as { response?: { data?: { detail?: string } } };
+    console.error("Error response:", apiError.response?.data); // Debug
+    setError(apiError.response?.data?.detail || "Failed to load pitches");
     toast.error("Failed to load pitches");
   } finally {
     setLoading(false);

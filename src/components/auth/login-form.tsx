@@ -14,6 +14,7 @@ import { Loader2, Eye, EyeOff } from "lucide-react";
 import { authApi, profileApi } from "@/lib/api";
 import { toast } from "sonner";
 import { useAuth } from '@/contexts/auth-context';
+import type { ApiError } from "@/lib/types";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -80,9 +81,9 @@ export function LoginForm() {
     try {
       await login(data.email, data.password);
       toast.success("Welcome back!");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("❌ Login error:", err);
-      const errorMessage = err.response?.data?.detail || "Login failed. Please try again.";
+      const errorMessage = (err as ApiError)?.response?.data?.detail || "Login failed. Please try again.";
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -99,9 +100,9 @@ export function LoginForm() {
       setResetEmail(data.email);
       setCurrentStep('verify-otp');
       toast.success("OTP sent to your email!");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("❌ Forgot password error:", err);
-      const errorMessage = err.response?.data?.detail || "Failed to send OTP. Please try again.";
+      const errorMessage = (err as ApiError)?.response?.data?.detail || "Failed to send OTP. Please try again.";
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -121,9 +122,9 @@ export function LoginForm() {
       });
       setCurrentStep('success');
       toast.success("Password reset successfully!");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("❌ Reset password error:", err);
-      const errorMessage = err.response?.data?.detail || "Invalid OTP or failed to reset password. Please try again.";
+      const errorMessage = (err as ApiError)?.response?.data?.detail || "Invalid OTP or failed to reset password. Please try again.";
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -146,7 +147,7 @@ export function LoginForm() {
     try {
       await profileApi.forgotPassword({ email: resetEmail });
       toast.success("New OTP sent to your email!");
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error("Failed to resend OTP. Please try again.");
     } finally {
       setIsLoading(false);
@@ -222,7 +223,7 @@ export function LoginForm() {
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <div className="text-sm text-muted-foreground text-center">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Button
               variant="link"
               className="p-0 h-auto font-normal"
@@ -244,7 +245,7 @@ export function LoginForm() {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Forgot Password</CardTitle>
           <CardDescription>
-            Enter your email address and we'll send you a 6-digit OTP to reset your password.
+            Enter your email address and we&apos;ll send you a 6-digit OTP to reset your password.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -327,7 +328,7 @@ export function LoginForm() {
                   disabled={isLoading}
                   type="button"
                 >
-                  Didn't receive OTP? Resend
+                  Didn&apos;t receive OTP? Resend
                 </Button>
               </div>
             </div>

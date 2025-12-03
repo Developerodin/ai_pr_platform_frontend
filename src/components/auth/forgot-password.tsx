@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Mail, ArrowLeft } from "lucide-react";
 import { profileApi } from "@/lib/api";
 import { toast } from "sonner";
+import type { ApiError } from "@/lib/types";
 
 const emailSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -65,8 +66,8 @@ export function ForgotPassword({ onBackToLogin, onPasswordReset }: ForgotPasswor
       if (response.data.debug_code) {
         toast.info(`Debug: Reset code is ${response.data.debug_code}`, { duration: 10000 });
       }
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || "Failed to send reset code";
+    } catch (error: unknown) {
+      const errorMessage = (error as ApiError)?.response?.data?.detail || "Failed to send reset code";
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -83,8 +84,8 @@ export function ForgotPassword({ onBackToLogin, onPasswordReset }: ForgotPasswor
       });
       toast.success("Password reset successfully!");
       onPasswordReset?.();
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || "Failed to reset password";
+    } catch (error: unknown) {
+      const errorMessage = (error as ApiError)?.response?.data?.detail || "Failed to reset password";
       toast.error(errorMessage);
     } finally {
       setLoading(false);

@@ -39,7 +39,7 @@ import {
   CheckCircle,
   RefreshCw
 } from "lucide-react";
-import { Pitch, Journalist } from "@/lib/types";
+import { Pitch, Journalist, ApiError } from "@/lib/types";
 import { journalistApi, emailApi } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -177,8 +177,8 @@ export function EmailComposer({ pitch, trigger, onEmailSent }: EmailComposerProp
       form.reset();
       setSelectedJournalists([]);
       onEmailSent?.();
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || "Failed to send emails";
+    } catch (error: unknown) {
+      const errorMessage = (error as ApiError)?.response?.data?.detail || "Failed to send emails";
       toast.error(errorMessage);
     } finally {
       setSending(false);

@@ -15,6 +15,7 @@ import { Loader2, Building2 } from "lucide-react";
 import { Newsroom } from "@/lib/types";
 import { newsroomApi } from "@/lib/api";
 import { toast } from "sonner";
+import type { ApiError } from "@/lib/types";
 
 const newsroomSchema = z.object({
   name: z.string().min(1, "Company name is required").max(200),
@@ -26,7 +27,7 @@ const newsroomSchema = z.object({
   founded_year: z.number().min(1800).max(2030).optional(),
   industry: z.string().max(100).optional(),
   employee_count: z.string().max(50).optional(),
-  is_public: z.boolean().default(false),
+  is_public: z.boolean(),
 });
 
 type NewsroomFormData = z.infer<typeof newsroomSchema>;
@@ -80,8 +81,8 @@ export function NewsroomSetup({ onNewsroomCreated }: NewsroomSetupProps) {
         onNewsroomCreated(newsroomResponse.data.newsroom);
       }
 
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || "Failed to create newsroom";
+    } catch (error: unknown) {
+      const errorMessage = (error as ApiError)?.response?.data?.detail || "Failed to create newsroom";
       toast.error(errorMessage);
     } finally {
       setCreating(false);
@@ -94,7 +95,7 @@ export function NewsroomSetup({ onNewsroomCreated }: NewsroomSetupProps) {
         <Building2 className="h-12 w-12 mx-auto text-primary mb-4" />
         <h1 className="text-3xl font-bold tracking-tight">Create Your Digital Newsroom</h1>
         <p className="text-muted-foreground mt-2">
-          Set up your company's digital newsroom to share press releases and media assets with journalists
+          Set up your company&apos;s digital newsroom to share press releases and media assets with journalists
         </p>
       </div>
 

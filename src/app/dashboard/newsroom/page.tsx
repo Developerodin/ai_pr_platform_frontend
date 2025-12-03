@@ -88,7 +88,7 @@ export default function NewsroomPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Digital Newsroom</h1>
           <p className="text-muted-foreground">
-            Manage your company's press releases and media assets
+            Manage your company&apos;s press releases and media assets
           </p>
         </div>
         <div className="flex items-center gap-4">

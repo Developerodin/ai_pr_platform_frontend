@@ -1,32 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles } from "lucide-react";
-import { authApi } from "@/lib/api";
-import { cn } from "@/lib/utils";
 import { ModeToggle } from "../mode-toggle";
 import { useAuth } from '@/contexts/auth-context';
 
 // change from here 
 export function Navbar() {
-  const { user, logout } = useAuth();
-
-  useEffect(() => {
-    loadUser();
-  }, []);
-
-  const loadUser = async () => {
-    try {
-      const response = await authApi.profile();
-      setUser(response.data);
-    } catch (error) {
-      const localUser = localStorage.getItem('user_data');
-      if (localUser) {
-        setUser(JSON.parse(localUser));
-      }
-    }
-  };
+  const { user } = useAuth();
 
   return (
     <nav className="w-full bg-background border-b border-border">

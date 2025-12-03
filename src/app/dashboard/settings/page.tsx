@@ -100,7 +100,7 @@ export default function SettingsPage() {
         email_signature: userData.preferences?.email_signature || "",
       });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to load user profile:", error);
       toast.error("Failed to load profile information");
       
@@ -131,8 +131,8 @@ export default function SettingsPage() {
       localStorage.setItem('user_data', JSON.stringify(updatedUser));
       
       toast.success("Profile updated successfully!");
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || "Failed to update profile";
+    } catch (error: unknown) {
+      const errorMessage = (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail || "Failed to update profile";
       toast.error(errorMessage);
     } finally {
       setSaving(false);
@@ -155,8 +155,8 @@ export default function SettingsPage() {
       }
       
       toast.success("Preferences updated successfully!");
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || "Failed to update preferences";
+    } catch (error: unknown) {
+      const errorMessage = (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail || "Failed to update preferences";
       toast.error(errorMessage);
     } finally {
       setSaving(false);

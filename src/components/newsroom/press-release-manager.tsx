@@ -27,6 +27,7 @@ import {
 import { Newsroom, PressRelease, Pitch } from "@/lib/types";
 import { newsroomApi, pitchApi } from "@/lib/api";
 import { toast } from "sonner";
+import type { ApiError } from "@/lib/types";
 
 interface PressReleaseManagerProps {
   newsroom: Newsroom;
@@ -67,7 +68,7 @@ export function PressReleaseManager({ newsroom, onUpdate }: PressReleaseManagerP
       
       // Filter out pitches that are already added to newsroom
       const existingPitchIds = pressReleases.map(pr => pr.pitch_id);
-      const availablePitches = pitches.filter(pitch => !existingPitchIds.includes(pitch.id));
+      const availablePitches = pitches.filter((pitch: Pitch) => !existingPitchIds.includes(pitch.id));
       
       setAvailablePitches(availablePitches);
     } catch (error) {
@@ -94,8 +95,8 @@ export function PressReleaseManager({ newsroom, onUpdate }: PressReleaseManagerP
       loadPressReleases();
       onUpdate();
       
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || "Failed to add press release";
+    } catch (error: unknown) {
+      const errorMessage = (error as ApiError)?.response?.data?.detail || "Failed to add press release";
       toast.error(errorMessage);
     } finally {
       setAdding(false);
@@ -110,8 +111,8 @@ export function PressReleaseManager({ newsroom, onUpdate }: PressReleaseManagerP
       toast.success("Press release removed from newsroom!");
       loadPressReleases();
       onUpdate();
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || "Failed to remove press release";
+    } catch (error: unknown) {
+      const errorMessage = (error as ApiError)?.response?.data?.detail || "Failed to remove press release";
       toast.error(errorMessage);
     }
   };

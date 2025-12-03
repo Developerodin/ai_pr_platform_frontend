@@ -21,7 +21,7 @@ import { Separator } from "@/components/ui/separator";
 import { Loader2, Sparkles, FileText, Mail } from "lucide-react";
 import { pitchApi } from "@/lib/api";
 import { toast } from "sonner";
-import { Pitch } from "@/lib/types";
+import { Pitch, ApiError } from "@/lib/types";
 
 const pitchSchema = z.object({
   headline: z.string().min(10, "Headline must be at least 10 characters").max(200, "Headline must be less than 200 characters"),
@@ -74,8 +74,8 @@ export function PitchGenerator({ onPitchGenerated }: PitchGeneratorProps) {
       onPitchGenerated?.(newPitch);
       
       toast.success(`AI Pitch generated successfully! Quality score: ${newPitch.generation_info.quality_score}/10`);
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || "Failed to generate pitch";
+    } catch (error: unknown) {
+      const errorMessage = (error as ApiError)?.response?.data?.detail || "Failed to generate pitch";
       toast.error(errorMessage);
     } finally {
       setIsGenerating(false);
@@ -94,8 +94,8 @@ export function PitchGenerator({ onPitchGenerated }: PitchGeneratorProps) {
       onPitchGenerated?.(updatedPitch);
       
       toast.success(`Pitch regenerated! New quality score: ${updatedPitch.generation_info.quality_score}/10`);
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || "Failed to regenerate pitch";
+    } catch (error: unknown) {
+      const errorMessage = (error as ApiError)?.response?.data?.detail || "Failed to regenerate pitch";
       toast.error(errorMessage);
     } finally {
       setIsGenerating(false);
@@ -168,7 +168,7 @@ export function PitchGenerator({ onPitchGenerated }: PitchGeneratorProps) {
               <Label htmlFor="announcement_type">Announcement Type</Label>
               <Select
                 value={form.watch("announcement_type")}
-                onValueChange={(value) => form.setValue("announcement_type", value as any)}
+                onValueChange={(value) => form.setValue("announcement_type", value as Pitch['announcement_type'])}
                 disabled={isGenerating}
               >
                 <SelectTrigger>

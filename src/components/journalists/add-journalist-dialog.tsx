@@ -27,6 +27,7 @@ import {
 import { Plus, Loader2 } from "lucide-react";
 import { journalistApi } from "@/lib/api";
 import { toast } from "sonner";
+import type { ApiError, Journalist } from "@/lib/types";
 
 const journalistSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -75,6 +76,7 @@ export function AddJournalistDialog({ onJournalistAdded }: AddJournalistDialogPr
       const journalistData = {
         ...data,
         topics: topicsArray,
+        timezone: data.timezone || "UTC",
       };
 
       await journalistApi.create(journalistData);
@@ -83,8 +85,8 @@ export function AddJournalistDialog({ onJournalistAdded }: AddJournalistDialogPr
       form.reset();
       setOpen(false);
       onJournalistAdded?.();
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || "Failed to add journalist";
+    } catch (error: unknown) {
+      const errorMessage = (error as ApiError)?.response?.data?.detail || "Failed to add journalist";
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -161,7 +163,7 @@ export function AddJournalistDialog({ onJournalistAdded }: AddJournalistDialogPr
               <Label htmlFor="category">Category</Label>
               <Select
                 value={form.watch("category")}
-                onValueChange={(value) => form.setValue("category", value as any)}
+                onValueChange={(value) => form.setValue("category", value as Journalist['category'])}
                 disabled={isLoading}
               >
                 <SelectTrigger>

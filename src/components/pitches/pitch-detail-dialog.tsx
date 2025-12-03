@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -29,7 +29,7 @@ import {
   Check,
   X
 } from "lucide-react";
-import { Pitch, REWRITE_PRESETS } from "@/lib/types";
+import { Pitch, REWRITE_PRESETS, RewritePreset } from "@/lib/types";
 import { toast } from "sonner";
 import { pitchApi } from "@/lib/api";
 import { ContentRewriter } from "./content-rewriter";
@@ -86,7 +86,7 @@ export function PitchDetailDialog({ pitch, trigger, onPitchUpdated }: PitchDetai
   });
 
   // Update local state when prop changes
-  useState(() => {
+  useEffect(() => {
     setCurrentPitch(pitch);
     setEditingContent({
       press_release_headline: pitch.content.press_release.headline,
@@ -183,8 +183,9 @@ export function PitchDetailDialog({ pitch, trigger, onPitchUpdated }: PitchDetai
       const fieldName = field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
       toast.success(`✅ ${fieldName} updated successfully!`);
       
-    } catch (error: any) {
-      toast.error(`❌ Failed to save changes: ${error.response?.data?.detail || 'Unknown error'}`);
+    } catch (error: unknown) {
+      const apiError = error as { response?: { data?: { detail?: string } } };
+      toast.error(`❌ Failed to save changes: ${apiError.response?.data?.detail || 'Unknown error'}`);
     } finally {
       setSavingEdit(null);
     }
@@ -211,7 +212,7 @@ export function PitchDetailDialog({ pitch, trigger, onPitchUpdated }: PitchDetai
   };
 
   // Enhanced quick rewrite function with loading states
-  const handleQuickRewrite = async (contentType: 'email' | 'press_release', preset: any) => {
+  const handleQuickRewrite = async (contentType: 'email' | 'press_release', preset: RewritePreset) => {
     const loadingKey = preset.name;
     
     // Set loading state for this specific button
@@ -233,8 +234,9 @@ export function PitchDetailDialog({ pitch, trigger, onPitchUpdated }: PitchDetai
       
       handleRewriteComplete(contentType, response.data.rewritten_content);
       
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || "Failed to rewrite content";
+    } catch (error: unknown) {
+      const apiError = error as { response?: { data?: { detail?: string } } };
+      const errorMessage = apiError.response?.data?.detail || "Failed to rewrite content";
       toast.error(`❌ ${errorMessage}`);
     } finally {
       // Clear loading state for this button

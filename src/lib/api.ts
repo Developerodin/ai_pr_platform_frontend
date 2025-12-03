@@ -14,9 +14,23 @@ import type {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://apis.scraponwheels.com/ecom/';
 
+// Use proxy in production to avoid CORS issues
+// In development (localhost), we can call the API directly
+// In production, we use Next.js API routes as a proxy
+const USE_PROXY = process.env.NEXT_PUBLIC_USE_PROXY === 'true' || 
+                  (typeof window !== 'undefined' && !window.location.hostname.includes('localhost'));
+
+const getBaseURL = () => {
+  if (USE_PROXY) {
+    // Use Next.js API proxy route
+    return '/api/proxy';
+  }
+  return API_BASE_URL;
+};
+
 // Create axios instance
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: getBaseURL(),
   headers: {
     'Content-Type': 'application/json',
   },
@@ -33,6 +47,7 @@ api.interceptors.request.use((config) => {
       console.log(`❌ No token found for ${config.url}`);
     }
   }
+  
   return config;
 });
 
@@ -226,7 +241,9 @@ export const chatbotApi = {
     }>;
   }): Promise<{ data: ChatbotCompleteEvent }> => {
     // Use fetch because axios doesn't handle SSE streaming well
-    const url = `${API_BASE_URL}/api/v1/chatbot/message`;
+    const url = USE_PROXY 
+      ? `/api/proxy/api/v1/chatbot/message`
+      : `${API_BASE_URL}/api/v1/chatbot/message`;
 
     // Attach auth token manually (to match your axios interceptor behavior)
     const headers: Record<string, string> = {

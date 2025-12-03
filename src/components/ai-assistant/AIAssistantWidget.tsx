@@ -79,7 +79,22 @@ const AIAssistantWidget = forwardRef<AIAssistantWidgetRef, AIAssistantWidgetProp
         
         if (savedMessages) {
           const parsedMessages = JSON.parse(savedMessages);
-          setMessages(parsedMessages);
+          // Transform messages to ensure next_steps are strings, not objects
+          const transformedMessages = parsedMessages.map((msg: ChatMessage) => {
+            if (msg.metadata?.next_steps) {
+              return {
+                ...msg,
+                metadata: {
+                  ...msg.metadata,
+                  next_steps: msg.metadata.next_steps.map((step: string | { title: string; description?: string; icon?: string }) => 
+                    typeof step === 'string' ? step : step.title
+                  ),
+                },
+              };
+            }
+            return msg;
+          });
+          setMessages(transformedMessages);
           // Scroll to bottom after loading messages
           setTimeout(() => scrollToBottom(), 100);
         }
@@ -506,12 +521,17 @@ if (toolCount > 0) {
   <div className="mt-4">
     <p className="text-xs font-semibold mb-2">Next Steps:</p>
     <ul className="text-xs space-y-1">
-      {message.metadata.next_steps.slice(0, 2).map((step: string, index: number) => (
-        <li key={index} className="flex items-start gap-2">
-          <ArrowRight className="h-3 w-3 mt-0.5 flex-shrink-0 text-primary" />
-          <span>{step}</span>
-        </li>
-      ))}
+      {message.metadata.next_steps.slice(0, 2).map((step: string | { title?: string; description?: string; icon?: string }, index: number) => {
+        const stepText = typeof step === 'string' 
+          ? step 
+          : step.title || step.description || 'Next step';
+        return (
+          <li key={index} className="flex items-start gap-2">
+            <ArrowRight className="h-3 w-3 mt-0.5 flex-shrink-0 text-primary" />
+            <span>{stepText}</span>
+          </li>
+        );
+      })}
     </ul>
   </div>
 )}

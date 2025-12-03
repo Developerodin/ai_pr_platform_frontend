@@ -52,7 +52,22 @@ export default function AIAssistantPage() {
 
       if (savedMessages) {
         const parsedMessages = JSON.parse(savedMessages);
-        setMessages(parsedMessages);
+        // Transform messages to ensure next_steps are strings, not objects
+        const transformedMessages = parsedMessages.map((msg: ChatMessage) => {
+          if (msg.metadata?.next_steps) {
+            return {
+              ...msg,
+              metadata: {
+                ...msg.metadata,
+                next_steps: msg.metadata.next_steps.map((step: string | { title: string; description?: string; icon?: string }) => 
+                  typeof step === 'string' ? step : step.title
+                ),
+              },
+            };
+          }
+          return msg;
+        });
+        setMessages(transformedMessages);
       }
     } catch (error) {
       console.error("Error loading chat history:", error);
@@ -574,17 +589,22 @@ export default function AIAssistantPage() {
                                       .slice(0, 3)
                                       .map(
                                         (
-                                          step: string,
+                                          step: string | { title?: string; description?: string; icon?: string },
                                           stepIndex: number
-                                        ) => (
-                                          <li
-                                            key={stepIndex}
-                                            className="flex items-start gap-2 text-sm"
-                                          >
-                                            <ArrowRight className="h-4 w-4 mt-0.5 flex-shrink-0 text-primary" />
-                                            <span>{step}</span>
-                                          </li>
-                                        )
+                                        ) => {
+                                          const stepText = typeof step === 'string' 
+                                            ? step 
+                                            : step.title || step.description || 'Next step';
+                                          return (
+                                            <li
+                                              key={stepIndex}
+                                              className="flex items-start gap-2 text-sm"
+                                            >
+                                              <ArrowRight className="h-4 w-4 mt-0.5 flex-shrink-0 text-primary" />
+                                              <span>{stepText}</span>
+                                            </li>
+                                          );
+                                        }
                                       )}
                                   </ul>
                                 </div>
